@@ -1,0 +1,21 @@
+.stats { display: flex; justify-content: flex-end; margin: 0; animation: settle .9s var(--ease-out) .25s both; }
+.stat { min-width: 0; padding: 0 0 0 22px; margin-left: 22px; border-left: 1px solid var(--rule); }
+.stat:first-child { margin-left: 0; padding-left: 0; border-left: 0; }
+.stat dt { font: .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.stat dd { margin: 8px 0 0; font: 620 1.7rem/1 var(--display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.stat dd small { margin-left: 3px; font: 500 .8125rem/1 var(--mono); letter-spacing: 0; color: var(--muted); }
+.stat.is-live dd span[aria-hidden]::before { content: ''; display: inline-block; width: 8px; height: 8px; margin: 0 8px .3em 0; border-radius: 50%; background: var(--signal); vertical-align: middle; }
+
+@media (max-width: 959px) {
+  .stats { justify-content: flex-start; margin-top: 36px; padding: 14px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); }
+  .stat { flex: 1 1 0; }
+  .stat dd { font-size: 1.6rem; }
+}
+
+/* Narrow phones read the stats as a ledger instead of squeezing three columns. */
+@media (max-width: 479px) {
+  .stats { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0; }
+  .stat, .stat:first-child { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; padding: 10px 0; border-left: 0; border-top: 1px solid var(--rule); }
+  .stat:first-child { border-top: 0; }
+  .stat dd { margin: 0; font-size: 1.35rem; }
+}
