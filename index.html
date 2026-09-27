@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#ece8df" />
+    <meta name="theme-color" content="#f0ebdf" />
     <meta name="color-scheme" content="light" />
     <meta name="robots" content="index, follow" />
     <meta name="description" content="Playable 3D explainers by Marinov. Each lab takes one thing people assume about sound, space or Bitcoin and makes the real mechanism visible." />
@@ -13,13 +13,13 @@
     <meta property="og:site_name" content="Interactive Labs" />
     <meta property="og:title" content="Interactive Labs · Marinov" />
     <meta property="og:description" content="Playable 3D explainers. Each one makes a single misconception visible." />
-    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Interactive Labs · Marinov" />
     <meta name="twitter:description" content="Playable 3D explainers. Each one makes a single misconception visible." />
+    <style>html{background:#f0ebdf}</style>
   </head>
   <body>
     <div id="root"></div>
-    <!-- The no-JS index is generated from src/data/labs.ts at build time. -->
+    <!-- The no-JS index, twitter:card and any absolute URLs are added at build time from src/data/labs.ts and SITE_URL. -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
