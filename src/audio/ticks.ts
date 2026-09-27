@@ -1,12 +1,11 @@
-export type Tick = 'hover' | 'click' | 'detent' | 'land'
+export type Tick = 'click' | 'detent' | 'land'
 
 type Voice = { from: number; to: number; duration: number; gain: number; type: OscillatorType; gap: number }
 
 const voices: Record<Tick, Voice> = {
-  hover: { from: 940, to: 700, duration: 0.04, gain: 0.016, type: 'sine', gap: 0.07 },
-  click: { from: 620, to: 320, duration: 0.07, gain: 0.034, type: 'sine', gap: 0.07 },
-  detent: { from: 2300, to: 1900, duration: 0.012, gain: 0.009, type: 'triangle', gap: 0.035 },
-  land: { from: 260, to: 180, duration: 0.09, gain: 0.03, type: 'sine', gap: 0.12 },
+  click: { from: 520, to: 300, duration: 0.065, gain: 0.026, type: 'sine', gap: 0.07 },
+  detent: { from: 1250, to: 1050, duration: 0.018, gain: 0.011, type: 'sine', gap: 0.04 },
+  land: { from: 240, to: 170, duration: 0.09, gain: 0.026, type: 'sine', gap: 0.12 },
 }
 
 let context: AudioContext | undefined
