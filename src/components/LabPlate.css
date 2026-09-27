@@ -1,117 +1,74 @@
-.plate { position: relative; touch-action: pan-y; scroll-margin-top: 20px; }
+/* --m is the mount offset, --b reserves room for the brackets, --c is where the brackets sit right now. */
+.plate { position: relative; --m: 12px; --b: 10px; --c: var(--b); }
+.plate--compact { --m: 9px; --b: 8px; }
 
 /* ── Meta strip ── */
-.plate-meta { display: flex; align-items: center; gap: 16px; padding-bottom: 12px; margin-bottom: 26px; border-bottom: 1px solid var(--ink); font: .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.plate-no { color: var(--ink); transition: color .3s; }
-.plate-cat { flex: 1; }
-.plate-glyph { width: 64px; height: 20px; color: var(--ink-soft); }
-.is-cued .plate-no { color: var(--signal); }
+.plate-meta { display: flex; align-items: center; gap: 16px; min-height: 38px; padding-bottom: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--ink); font: .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.plate-no { flex: none; color: var(--ink); }
+.plate-of { color: var(--muted); }
+.plate-cat { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.plate-glyph { flex: none; width: 64px; height: 20px; color: var(--ink-soft); }
+.plate-step { position: relative; z-index: 4; display: inline-flex; flex: none; gap: 4px; }
+.plate-step button { display: grid; place-items: center; width: 34px; height: 28px; padding: 0; border: 1px solid var(--rule); border-radius: 999px; background: transparent; cursor: pointer; font: 500 .875rem/1 var(--mono); color: var(--ink); transition: border-color .2s, background .2s; }
+.plate-step button:not([aria-disabled="true"]):hover { border-color: var(--ink); background: var(--paper-lift); }
+.plate-step button[aria-disabled="true"] { border-style: dashed; color: var(--rule); cursor: default; }
 
-/* ── Frame: mount, image, viewfinder brackets ── */
-/* --m is the mount offset; --ml/--mr say which side it shows on; --b reserves room for the brackets, --c is where they sit now. */
-.plate { --m: 12px; --ml: 0px; --mr: var(--m); --b: 10px; --c: var(--b); }
-.plate--even { --ml: var(--m); --mr: 0px; }
-.plate-frame { position: relative; margin-right: calc(var(--m) + var(--b)); }
-.plate--even .plate-frame { margin: 0 0 0 max(calc(var(--m) + var(--b)), 9%); }
-.plate-mount { position: absolute; inset: 0; background: var(--swatch); transform: translate(calc(var(--mr) - var(--ml)), var(--m)); transition: transform .8s var(--ease-out); }
-.plate-image { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #0e1011; --progress: 0; transition: transform .6s var(--ease-out), clip-path 1.2s var(--ease-out); }
+/* ── Figure: mount, print, viewfinder brackets ── */
+.plate-figure { margin: 0; }
+.plate-frame { position: relative; margin: 0 calc(var(--m) + var(--b)) 0 0; }
+.plate-mount { position: absolute; inset: 0; background: var(--swatch); transform: translate(var(--m), var(--m)); transition: transform .7s var(--ease-out); }
+.plate-image { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #0e1011; transition: transform .7s var(--ease-out); }
 .plate-image img, .plate-video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
-.plate-video { opacity: 0; transition: opacity .2s linear; }
-.is-engaged .plate-video { opacity: 1; }
+.plate-image img { transition: transform 1.6s var(--ease-out); }
+.plate-video { opacity: 0; transition: opacity .4s linear; }
+.is-playing .plate-video { opacity: 1; }
 
-/* Viewfinder brackets frame the print and its mount together, and close in when the plate is cued. */
-.crop { position: absolute; width: 16px; height: 16px; border: 0 solid var(--ink); pointer-events: none; transition: top .5s var(--ease-out), right .5s var(--ease-out), bottom .5s var(--ease-out), left .5s var(--ease-out), border-color .3s, opacity .6s; }
-.crop--tl { top: calc(-1 * var(--c)); left: calc(-1 * (var(--c) + var(--ml))); border-top-width: 1px; border-left-width: 1px; }
-.crop--tr { top: calc(-1 * var(--c)); right: calc(-1 * (var(--c) + var(--mr))); border-top-width: 1px; border-right-width: 1px; }
-.crop--bl { bottom: calc(-1 * (var(--c) + var(--m))); left: calc(-1 * (var(--c) + var(--ml))); border-bottom-width: 1px; border-left-width: 1px; }
-.crop--br { bottom: calc(-1 * (var(--c) + var(--m))); right: calc(-1 * (var(--c) + var(--mr))); border-bottom-width: 1px; border-right-width: 1px; }
-.plate.is-cued, .plate.is-hovering { --c: 5px; }
-.is-cued .crop, .is-hovering .crop { border-color: var(--signal); }
+.crop { position: absolute; width: 16px; height: 16px; border: 0 solid var(--ink); pointer-events: none; transition: top .5s var(--ease-out), right .5s var(--ease-out), bottom .5s var(--ease-out), left .5s var(--ease-out), border-color .3s; }
+.crop--tl { top: calc(-1 * var(--c)); left: calc(-1 * var(--c)); border-top-width: 1px; border-left-width: 1px; }
+.crop--tr { top: calc(-1 * var(--c)); right: calc(-1 * (var(--c) + var(--m))); border-top-width: 1px; border-right-width: 1px; }
+.crop--bl { bottom: calc(-1 * (var(--c) + var(--m))); left: calc(-1 * var(--c)); border-bottom-width: 1px; border-left-width: 1px; }
+.crop--br { bottom: calc(-1 * (var(--c) + var(--m))); right: calc(-1 * (var(--c) + var(--m))); border-bottom-width: 1px; border-right-width: 1px; }
 
-/* Lift the print off its mount while the camera is in hand. */
-.is-hovering .plate-image { transform: translate(calc((var(--ml) - var(--mr)) / 4), -3px); }
-.is-hovering .plate-mount { transform: translate(calc((var(--mr) - var(--ml)) * 1.35), calc(var(--m) * 1.35)); }
-
-/* First sight: print and mount wipe up together, then the mount slides out from under the print. */
-.plate:not(.is-seen) .plate-image, .plate:not(.is-seen) .plate-mount { clip-path: inset(100% 0 0 0); }
-.plate:not(.is-seen) .crop { opacity: 0; }
-.is-seen .plate-mount { animation: mount-in 1.6s var(--ease-out) backwards; }
-@keyframes mount-in {
-  from { clip-path: inset(100% 0 0 0); transform: translate(0, 0); }
-  55% { clip-path: inset(0); transform: translate(0, 0); }
-}
-
-/* ── Camera instrument ── */
-.has-camera .plate-frame { cursor: ew-resize; }
+/* Live: the whole plate is one link, so it lifts like a print picked up off the table. */
 .is-live .plate-frame { cursor: pointer; }
-.plate-playhead { position: absolute; top: 0; bottom: 0; left: calc(var(--progress) * 100%); width: 1px; background: #f5f2ecd9; opacity: 0; transition: opacity .2s; pointer-events: none; }
-.plate-timeline {
-  position: absolute; left: 0; right: 0; bottom: 0;
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px;
-  padding: 32px 16px 13px;
-  background: linear-gradient(#0000, #000a);
-  color: #f5f2ec;
-  font: .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase;
-  opacity: 0; transform: translateY(8px);
-  transition: opacity .25s, transform .45s var(--ease-out);
-  pointer-events: none;
-}
-.plate-track { position: relative; height: 9px; }
-.plate-track::before { content: ''; position: absolute; left: 0; right: 0; top: 4px; height: 1px; background: #f5f2ec4d; }
-.plate-fill { position: absolute; left: 0; top: 4px; width: calc(var(--progress) * 100%); height: 1px; background: #f5f2ec; }
-.plate-tick { position: absolute; top: 1px; left: calc(var(--mark) * 100%); width: 1px; height: 7px; background: #f5f2ec80; }
-.plate-time { font-variant-numeric: tabular-nums; }
-.is-loading .plate-timeline-label { animation: blink .9s steps(2, jump-none) infinite; }
-.is-hovering .plate-playhead, .is-engaged .plate-playhead { opacity: 1; }
-.is-hovering .plate-timeline, .is-engaged .plate-timeline { opacity: 1; transform: none; }
-@keyframes blink { 50% { opacity: .35; } }
+.is-live:hover .plate-frame { --c: 5px; }
+.is-live:hover .crop { border-color: var(--signal); }
+.is-live:hover .plate-image { transform: translate(-3px, -3px); }
+.is-live:hover .plate-mount { transform: translate(calc(var(--m) * 1.35), calc(var(--m) * 1.35)); }
+.is-live:hover .plate-image img { transform: scale(1.02); }
 
-/* The chip rides with the pointer and states what a click does here. */
+/* Coming soon: nothing to open, so hovering only brings the print into focus. */
+.is-soon .plate-frame:hover { --c: 6px; }
+.is-soon .plate-frame:hover .plate-image img { transform: scale(1.012); }
+
 .plate-chip {
-  position: absolute; left: 0; top: 0;
+  position: absolute; top: 0; left: 0;
   padding: 8px 11px 7px;
-  background: var(--paper); color: var(--ink);
+  background: var(--signal); color: var(--on-signal);
   font: 600 .75rem/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;
   transform: translate(var(--px, 0), var(--py, 0)) translate(var(--chip-x, 16px), var(--chip-y, 16px));
   opacity: 0; transition: opacity .18s;
   pointer-events: none;
 }
-.plate-chip b { font-weight: 400; margin-left: 6px; }
-.is-live .plate-chip { background: var(--signal); color: var(--on-signal); }
-@media (hover: hover) { .is-hovering .plate-chip { opacity: 1; } }
-.is-nudged .plate-chip { animation: nudge .5s var(--ease-out); }
-@keyframes nudge { 30% { background: var(--ink); color: var(--paper); } }
+.plate-chip b { margin-left: 6px; font-weight: 400; }
+@media (hover: hover) { .is-live:hover .plate-chip { opacity: 1; } }
 
-.plate-preview { position: absolute; inset: 0; z-index: 2; padding: 0; border: 0; background: transparent; cursor: inherit; }
-/* Keyboard focus hugs the print itself, inside the brackets. */
-.plate-preview:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
-.plate:has(.plate-open:focus-visible) .plate-image { outline: 2px solid var(--signal); outline-offset: 3px; }
+.plate-caption { display: flex; gap: 12px; margin: calc(var(--m) + 10px) 0 0; font: .75rem/1.4 var(--mono); color: var(--muted); }
+.plate-fig { flex: none; color: var(--ink); }
 
-.plate-hint { display: none; }
-
-/* ── Caption ── */
-.plate-body { margin-top: 34px; }
-.plate--even .plate-body { margin-left: clamp(0px, 9%, 96px); }
-.plate-title { margin: 0; font: 650 clamp(2.5rem, 4.7vw, 4.75rem)/.9 var(--display); letter-spacing: -.055em; text-wrap: balance; }
-
-.plate-claim { margin: 30px 0 0; }
-.claim { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 20px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--rule); }
+/* ── Caption block ── */
+.plate-body { margin-top: 18px; }
+.plate-title { margin: 0 0 18px; font: 650 clamp(2.4rem, 3.9vw, 4.2rem)/.9 var(--display); letter-spacing: -.055em; text-wrap: balance; }
+.plate-claim { margin: 0; }
+.claim { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 20px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--rule); }
 .claim dt { font: .75rem/1.5 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.claim dd { margin: 0; font: 400 clamp(1.1rem, 1.4vw, 1.35rem)/1.35 var(--serif); text-wrap: pretty; }
+.claim dd { margin: 0; font: 400 clamp(1.1rem, 1.4vw, 1.3rem)/1.35 var(--serif); text-wrap: pretty; }
 .claim--assumed dd { color: var(--muted); }
 .claim--shown dd { color: var(--ink); }
+/* Blue pencil: the assumption is struck through. */
+.claim--assumed s { text-decoration: none; background: linear-gradient(var(--signal), var(--signal)) no-repeat 0 58% / 100% 2px; }
 
-/* Blue pencil: the assumption is struck through, then the correction lands. */
-.claim--assumed s {
-  text-decoration: none;
-  background: linear-gradient(var(--signal), var(--signal)) no-repeat 0 58% / 0% 2px;
-  transition: background-size .75s var(--ease-in-out) .45s;
-}
-.is-seen .claim--assumed s { background-size: 100% 2px; }
-.claim--shown { opacity: 0; transform: translateY(8px); transition: opacity .6s ease 1.1s, transform .8s var(--ease-out) 1.1s; }
-.is-seen .claim--shown { opacity: 1; transform: none; }
-
-.plate-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; padding-top: 14px; border-top: 1px solid var(--ink); }
+.plate-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; padding-top: 10px; border-top: 1px solid var(--ink); }
 .plate-status { display: inline-flex; align-items: center; gap: 10px; margin: 0; font: .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .plate-status i { width: 8px; height: 8px; border: 1.5px solid currentColor; border-radius: 50%; }
 .is-live .plate-status { color: var(--ink); }
@@ -120,25 +77,40 @@
 .plate-path code { font: inherit; color: var(--ink-soft); }
 
 .plate-open { display: inline-flex; align-items: center; gap: 22px; min-height: 48px; padding: 0 18px 0 22px; background: var(--signal); color: var(--on-signal); font: 600 1rem/1 var(--display); letter-spacing: -.01em; transition: background .25s; }
-.plate-open b { font-weight: 400; font-size: 1.15em; transition: transform .45s var(--ease-out); }
+.plate-open b { font-size: 1.15em; font-weight: 400; transition: transform .45s var(--ease-out); }
+/* One link, stretched over the whole plate: one click anywhere opens a live lab. */
 .plate-open::after { content: ''; position: absolute; inset: 0; z-index: 3; }
-.plate-open:focus-visible { outline-offset: 4px; }
 .plate:hover .plate-open { background: var(--ink); }
 .plate:hover .plate-open b { transform: translate(3px, -3px); }
+.plate:has(.plate-open:focus-visible) .plate-image { outline: 2px solid var(--signal); outline-offset: 3px; }
 
-/* ── Touch ── */
-@media (hover: none) {
-  .plate-hint { display: block; margin: 20px 0 0; font: .75rem/1.4 var(--mono); color: var(--muted); }
-  .plate-hint::before { content: '⟷ '; color: var(--signal); }
-}
+/* ── Reveal: when the plate is first seen, and again each time it shows a different lab ── */
+.plate-stage .plate-image { animation: wipe .85s var(--ease-out) both; }
+.plate-stage .plate-mount { animation: mount-in 1.3s var(--ease-out) backwards; }
+.plate-stage .crop { animation: appear .5s ease .35s backwards; }
+.plate-stage .claim--assumed s { animation: strike .7s var(--ease-in-out) .45s backwards; }
+.plate-stage .claim--shown { animation: settle .7s var(--ease-out) .9s backwards; }
+.plate:not(.is-seen) .plate-stage * { animation-play-state: paused; }
+@keyframes wipe { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
+@keyframes mount-in { from { clip-path: inset(100% 0 0 0); transform: translate(0, 0); } 55% { clip-path: inset(0); transform: translate(0, 0); } }
+@keyframes appear { from { opacity: 0; } }
+@keyframes strike { from { background-size: 0% 2px; } }
 
-@media (max-width: 959px) {
-  .plate-meta { margin-bottom: 20px; }
-  .plate { --m: 9px; --b: 8px; }
-  .plate--even .plate-frame { margin-left: calc(var(--m) + var(--b)); }
-  .plate-body, .plate--even .plate-body { margin: 28px 0 0; }
-  .plate-timeline { padding: 24px 12px 10px; gap: 10px; }
-}
+/* ── Glyphs ── */
+.glyph { overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.glyph-envelope { stroke-width: 1; stroke-dasharray: 1.5 2.5; opacity: .4; }
+.glyph-axis { stroke-width: .8; opacity: .3; }
+.glyph-node { fill: currentColor; stroke: none; }
+.glyph-wave { transform-box: view-box; transform-origin: 36px 12px; }
+.glyph-coin { stroke-width: 1.2; fill: transparent; }
+.glyph-coin:nth-child(1), .glyph-coin:nth-child(4) { fill: currentColor; }
+.plate:hover .glyph-wave { animation: standing 1.05s var(--ease-in-out) infinite alternate; }
+.plate:hover .glyph-coin { animation: select 2.4s steps(1, end) calc(var(--i) * .16s) infinite; }
+@keyframes standing { from { transform: scaleY(1); } to { transform: scaleY(-1); } }
+@keyframes select { 0% { fill: transparent; } 25% { fill: currentColor; } 70% { fill: transparent; } }
+
+/* ── Compact plates live inside the mobile index ── */
+.plate--compact .plate-body { margin-top: 20px; }
 
 @media (max-width: 599px) {
   .plate-glyph { display: none; }
@@ -148,11 +120,6 @@
   .plate-path { text-align: left; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .plate-image { transform: none !important; }
-  .plate-mount { transform: translate(calc(var(--mr) - var(--ml)), var(--m)) !important; }
-  .plate:not(.is-seen) .plate-image, .plate:not(.is-seen) .plate-mount { clip-path: none; }
-  .plate:not(.is-seen) .crop { opacity: 1; }
-  .claim--assumed s { background-size: 100% 2px; }
-  .claim--shown { opacity: 1; transform: none; }
+@media (pointer: coarse) {
+  .plate-step button { width: 44px; height: 40px; }
 }
