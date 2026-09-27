@@ -20,30 +20,32 @@ GitHub Actions (`.github/workflows/ci.yml`) runs `npm ci`, `npm run typecheck`, 
 
 ## How the page is built
 
-The home is an index with one lab shown at a time, so it reads the same with two labs or twenty.
+Every lab is always on screen as a card. Nothing is hidden behind a selection, so the page reads the same with two labs or twenty.
 
 **Desktop (960px and wider)**
 
-- **Rail (left, sticky).** The Marinov lockup, sound control, title, one-line lede, and the index.
-- **Index header.** Stays in place: label, lab count, and status chips (All / Live / Soon) with honest counts. A chip with nothing to show is disabled rather than hidden, so “Live 00” stays visible.
-- **Index rows.** Scroll beneath the header. Each row shows its number, a thumbnail, title, field, and status. The index is a vertical tab list: ↑ / ↓ move through it, Home / End jump to the ends, and the plate follows. A signal-blue marker travels to the selected row.
-- **Stage (right).** The stats block, then the selected lab's plate. Previous / next buttons in the plate header step through the visible labs.
+- **Rail (left, sticky).** The Marinov lockup, the X link, the sound control, the title **Interactive Labs by Marinov**, a one-line lede, and the stats.
+- **Index (right).** A header that sticks to the top of the screen, with a lab count and status chips (All / Live / Soon), above a grid of cards. A chip with nothing to show is disabled rather than hidden, so “Live 00” stays visible. Filtering only narrows the grid; the default is All.
 
 **Narrower screens**
 
-- The rail becomes the page header, and the stats become a ledger.
-- The index header sticks to the top of the screen while the list scrolls.
-- Each row opens its plate in place. Several can be open at once, so opening one never moves another.
+- The rail becomes the page header, and the stats become a ledger on phones.
+- The index header sticks to the top while the cards scroll: two columns on tablets, one on phones.
 
-**Linking.** Every lab is linkable: `/#coin-table` opens with The Coin Table selected, and the address follows the selection.
+**A card** is a mounted print: the poster framed by viewfinder brackets on a mount in the lab's swatch colour, a caption saying what the image is, the title, and the one-breath hook: the misconception struck through in blue pencil with the correction underneath. A quiet foot shows the status.
 
-**A plate** is a mounted print: the poster framed by viewfinder brackets on a mount in the lab's swatch colour, a figure caption saying what the image is, the title, the misconception struck through in blue pencil with its correction underneath, and a quiet status line.
+**Linking.** Each card has its lab's id, so `/#coin-table` scrolls straight to it.
 
-**Stats** (top right on desktop, under the lede on phones) are counted from `src/data/labs.ts` at render time: labs in the index, misconceptions (labs with an assumption and a reveal), and paths live out of the total. Nothing is typed in by hand, so the numbers cannot drift from the data.
+**Stats** (in the rail) are counted from `src/data/labs.ts` at render time: labs in the index, misconceptions (labs with an assumption and a reveal), and paths live out of the total. Nothing is typed in by hand, so the numbers cannot drift from the data.
+
+**X.** The header and the footer link to [@marinovm10](https://x.com/marinovm10) in a new tab (`rel="noopener noreferrer"`).
 
 ### Mark
 
-The Marinov mark is a geometric **M** on a signal-blue tile. `public/favicon.svg` is the only copy: the lockup and the colophon render that same file, so the tab icon and the header mark cannot diverge. It is drawn on a 2-unit grid so the strokes land on whole pixels at 16px.
+The Marinov mark is a white **M** on a blue square. `public/favicon.svg` is the source, and the header and footer render that same file.
+
+- `public/favicon.ico` is the same artwork rasterized at 16, 32 and 48 px, for browsers that do not use SVG icons. Regenerate it whenever the SVG changes.
+- The icon links and the marks use `?v=2`. Bump it when the mark changes, so browsers holding an old cached icon fetch the new one.
 
 ### Palette and type
 
@@ -59,14 +61,14 @@ Type uses system fonts only: Segoe UI Variable (Display and Text) or the platfor
 
 ## Lab data and status
 
-Labs are listed in `src/data/labs.ts`, in index order. Each entry holds the title, field, tagline, the `assumption` / `reveal` pair, path, status, media, swatch, and an optional glyph for the plate header. Adding a lab is adding an entry and its media folder.
+Labs are listed in `src/data/labs.ts`, in index order. Each entry holds the title, field, tagline, the `assumption` / `reveal` pair, path, status, media, swatch, and an optional glyph for the card header. Adding a lab is adding an entry and its media folder.
 
 Both labs are `soon`. They stay `soon` until `/standing-wave/` and `/coin-table/` are actually mounted and tested on the shared domain. Changing a lab to `live` updates every surface at once:
 
 | | `soon` | `live` |
 | --- | --- | --- |
-| Plate | Not a link. Hovering only brings the print into focus. The foot shows the path as plain text: “opens once it's mounted”. | The whole plate is one link (a stretched **Open lab ↗** anchor), so one click opens the lab. It lifts on hover and shows an “Open lab” chip at the pointer. |
-| Index row and chips | `Soon`; counted under Soon | `Live` with a blue dot; counted under Live |
+| Card | Not a link. Hovering only brings the print into focus. The foot says “Coming soon” and shows the path as plain text: “not mounted yet”. | The whole card is one link (a stretched **Open lab ↗** anchor), so one click opens the lab. It lifts on hover and shows an “Open lab” chip at the pointer. |
+| Chips | Counted under Soon | Counted under Live |
 | Stats | Paths live `00/02` | Paths live counts it |
 | Colophon | “None are open yet” | “1 of 2 open now” |
 | No-JS fallback and JSON-LD | Title and path as text only | Title links to the path (with `SITE_URL`, the JSON-LD part gets a URL) |
@@ -78,25 +80,24 @@ A coming-soon lab never links to a destination that isn't there.
 ```text
 public/media/labs/<lab-id>/
   poster.webp   required, 1200 × 750 still captured from the lab build
-  thumb.webp    optional, 240 × 150 downscale of the poster, used by the index
   loop.mp4      optional, only a real seamless loop (see below)
   loop.webm     optional, same loop in VP9
 ```
 
-- **Posters are the honest default.** Every plate shows its poster first, with alt text describing the scene and a caption that says what it is: “Still, captured from the lab.” Reduced-motion and data-saver visitors only ever get stills.
-- **Thumbnails** keep a long index light: twelve rows load twelve small files, not twelve full posters. Without a `thumb`, the row falls back to the poster.
-- **Loops are opt-in and must be real.** Add `media.loop` only for a capture that loops without a visible seam. It then autoplays muted while the plate is on screen, pauses when off screen or when the tab is hidden, and the caption changes to “Muted loop, captured from the lab.” It is only downloaded when it is about to play, and any failure leaves the poster in place.
+- **Posters are the honest default.** Every card shows its poster, with alt text describing the scene and a caption that says what it is: “Still, captured from the lab.” Reduced-motion and data-saver visitors only ever get stills.
+- The first two posters load eagerly; the rest load as they approach the screen, so a long index stays light.
+- **Loops are opt-in and must be real.** Add `media.loop` only for a capture that loops without a visible seam. It then autoplays muted while the card is on screen, pauses when off screen or when the tab is hidden, and the caption changes to “Muted loop, captured from the lab.” It is only downloaded when it is about to play, and any failure leaves the poster in place.
 - **There are no loops yet.** The earlier four-second camera clips drifted and jumped back at the loop point, so they were removed rather than shown. They remain in history at commit `70f7b37` if they are useful as reference for new captures.
-- **Motion without video** is limited to CSS on the real still: the print wipes up out of its mount when first seen, a live plate lifts on hover, and the image eases by a percent or two.
+- **Motion without video** is limited to CSS on the real still: the print wipes up out of its mount when a card first comes into view, a live card lifts on hover, and the image eases by a percent or two.
 
 Keep posters at 16:10. To replace media without code changes, overwrite the same filenames.
 
 ## Motion, sound, and access
 
 - **Reduced motion** turns every animation and transition off and shows the final state (struck assumption, visible correction). No video element is created.
-- **Sound** is off by default. The header control enables quiet synthesized ticks: a detent tick for each step through the index, a click for choices, and a soft landing when sound is switched on. The preference is stored locally, and even a remembered “on” waits for a user gesture. There are no sound files, and audio failures never block navigation.
-- **Keyboard:** skip link → lockup → sound → status chips → the selected index row (arrows move within the list) → the plate → previous / next. Focus rings are signal blue. Previous / next stay focusable at the ends of the list, so focus is never lost.
-- **Screen readers:** index rows are named “Standing Wave, Sound & space. Coming soon.” On desktop they are tabs controlling one panel; on phones they are disclosure buttons with `aria-expanded`. The struck assumption is a real `<s>` element. Stats read as “Paths live: 0 of 2.”
+- **Sound** is off by default. The header control enables quiet synthesized ticks: a detent tick for each keyboard step between cards, a click for choices, and a soft landing when sound is switched on. The preference is stored locally, and even a remembered “on” waits for a user gesture. There are no sound files, and audio failures never block navigation.
+- **Keyboard:** skip link → lockup → X → sound → status chips → each card in order → footer. Tab visits every card. Inside the grid, the arrow keys move by column and row, Page Up / Page Down step one card, and Home / End jump to the ends. A coming-soon card takes focus itself; a live card's focus lands on its Open lab link, so Enter opens it. Focus rings are signal blue and always land below the sticky header.
+- **Screen readers:** the grid is a feed of articles. Each card is named by its title and described by its hook (“You'd think: … The lab shows: …”), with its position in the set. The struck assumption is a real `<s>` element. Stats read as “Paths live: 0 of 2.”
 - **No-JS:** the HTML includes a crawlable index generated from `labs.ts` at build time.
 
 ## Sharing and SITE_URL
@@ -148,8 +149,8 @@ Separate Pages projects do not automatically become paths on one domain. Mountin
 CI covers typecheck and build. Also check:
 
 - the home at desktop, short-laptop (1280 × 720), tablet, and phone widths, with no horizontal scroll down to 320px;
-- the index with arrow keys, the chips, and a deep link such as `/#coin-table`;
-- a long list: temporarily add mock entries and confirm the index scrolls under its header and rows truncate cleanly;
+- the grid with Tab and arrow keys, the chips, and a deep link such as `/#coin-table`;
+- a long index: temporarily add mock entries and confirm every card stays visible, the header stays pinned, and long titles wrap cleanly;
 - reduced motion (stills only, no video requests) and sound on/off;
 - that `/standing-wave/`, `/coin-table/`, and any unknown path return the 404 page from `npm run preview`;
 - after deployment, both real lab URLs.
