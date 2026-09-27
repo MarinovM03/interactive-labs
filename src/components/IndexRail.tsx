@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { Mark } from './Mark'
+import { XLink } from './XLink'
 import { SoundToggle } from '../audio/Sound'
 
-/** The page header: lockup, sound, title and lede. On desktop it becomes the sticky rail that also holds the index. */
 export function IndexRail({ children }: { children?: ReactNode }) {
   return (
     <header className="rail">
@@ -11,13 +11,16 @@ export function IndexRail({ children }: { children?: ReactNode }) {
           <Mark />
           <span>Marinov</span>
         </a>
-        <SoundToggle />
+        <div className="rail-actions">
+          <XLink />
+          <SoundToggle />
+        </div>
       </div>
 
       <div className="rail-hero">
         <h1 className="display">
           <span className="display-line"><span>Interactive</span></span>{' '}
-          <span className="display-line"><span>Labs</span></span>
+          <span className="display-line"><span>Labs <span className="display-by">by Marinov</span></span></span>
         </h1>
         <p className="lede"><strong>Playable 3D explainers.</strong> Each one makes a single misconception visible.</p>
       </div>

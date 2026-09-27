@@ -8,8 +8,7 @@ const shareImage = '/media/labs/standing-wave/poster.webp'
 
 const escapeHtml = (value: string) => value.replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char]!)
 
-// The hub owns exactly one page: `/`. Lab paths belong to the separate lab apps, and nothing else exists,
-// so every other page request gets the real 404 page with a 404 status, locally as on the host.
+// The hub serves only `/`. Lab paths belong to separate apps, so any other page request gets the real 404, as on the host.
 function rootOnly(): Plugin {
   const notFound = (request: { url?: string; method?: string; headers: Record<string, string | string[] | undefined> }, response: { statusCode: number; setHeader: (name: string, value: string) => void; end: (body: string) => void }, next: () => void) => {
     const pathname = request.url?.split('?')[0] ?? '/'
@@ -22,13 +21,12 @@ function rootOnly(): Plugin {
   }
   return {
     name: 'hub-root-only',
-    // Registered after Vite's static and HTML middleware, so real files still win.
+    // Returning a function registers this after Vite's static middleware, so real files still win.
     configureServer(server) { return () => { server.middlewares.use(notFound) } },
     configurePreviewServer(server) { return () => { server.middlewares.use(notFound) } },
   }
 }
 
-// Crawlers and no-JS visitors get the same honest index: only live labs are links.
 function fallbackIndex() {
   const items = labs.map((lab) => {
     const title = lab.status === 'live' ? `<a href="${escapeHtml(lab.href)}" style="color:inherit">${escapeHtml(lab.title)}</a>` : escapeHtml(lab.title)
@@ -36,7 +34,7 @@ function fallbackIndex() {
     return `<li style="margin:0 0 1.6rem"><h2 style="margin:0;font-size:1.6rem;letter-spacing:-.03em">${title}</h2><p style="margin:.3rem 0 0">${escapeHtml(lab.tagline)}</p><p style="margin:.3rem 0 0;color:#66625a;font:.85rem ui-monospace,Consolas,monospace">${status}</p></li>`
   }).join('')
   return `<main style="max-width:44rem;margin:0 auto;padding:3rem 1.25rem;color:#141310;background:#f0ebdf;font:1.1rem/1.55 system-ui,sans-serif">`
-    + `<p style="margin:0;font:.85rem ui-monospace,Consolas,monospace;color:#66625a">Interactive Labs · Marinov</p>`
+    + `<p style="margin:0;font:.85rem ui-monospace,Consolas,monospace;color:#66625a">Interactive Labs by Marinov</p>`
     + `<h1 style="margin:.8rem 0 .4rem;font-size:2.6rem;line-height:1;letter-spacing:-.05em">Playable 3D explainers.</h1>`
     + `<p style="margin:0 0 2.4rem">Each one makes a single misconception visible.</p>`
     + `<ol style="list-style:none;margin:0;padding:0">${items}</ol></main>`
@@ -54,7 +52,6 @@ export default defineConfig(({ mode }) => {
   }
   return {
     base: '/',
-    // Not an SPA: no catch-all rewrites to index.html, so lab paths are never faked by the hub.
     appType: 'mpa',
     plugins: [
       react(),
@@ -79,8 +76,6 @@ export default defineConfig(({ mode }) => {
           return [
             { tag: 'script', attrs: { type: 'application/ld+json' }, children: JSON.stringify(schema).replaceAll('<', '\\u003c'), injectTo: 'head' as const },
             { tag: 'noscript', children: fallbackIndex(), injectTo: 'body-prepend' as const },
-            // Absolute URLs only exist when SITE_URL is set at build time. Without it, nothing claims a domain
-            // and the card falls back to a plain summary instead of promising an image it cannot point to.
             { tag: 'meta', attrs: { name: 'twitter:card', content: siteUrl ? 'summary_large_image' : 'summary' }, injectTo: 'head' as const },
             ...(siteUrl ? [
               { tag: 'link', attrs: { rel: 'canonical', href: siteUrl }, injectTo: 'head' as const },
