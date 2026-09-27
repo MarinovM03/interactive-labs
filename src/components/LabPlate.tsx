@@ -9,65 +9,26 @@ import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useSeen } from '../hooks/useSeen'
 import './LabPlate.css'
 
-type Step = { prev: boolean; next: boolean; go: (direction: -1 | 1) => void }
-
 type Props = {
   lab: Lab
-  /** Position in the full index, starting at 1. */
   number: number
-  total: number
-  /** Inside the mobile index the row already carries the title and number. */
-  compact?: boolean
-  step?: Step
+  position: number
+  setSize: number
 }
 
 const saveData = () => Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData)
 
-export function LabPlate({ lab, number, total, compact = false, step }: Props) {
-  const article = useRef<HTMLElement>(null)
-  const seen = useSeen(article, 0.15)
-  const live = lab.status === 'live'
-
-  const classes = ['plate', live ? 'is-live' : 'is-soon', compact && 'plate--compact', seen && 'is-seen'].filter(Boolean).join(' ')
-
-  return (
-    <article ref={article} className={classes} aria-labelledby={compact ? lab.id : `${lab.id}-title`}
-      style={{ '--swatch': lab.swatch } as CSSProperties}>
-      {!compact && (
-        <div className="plate-meta">
-          <span className="plate-no">Nº {pad(number)}<span className="plate-of"> / {pad(total)}</span></span>
-          <span className="plate-cat">{lab.category}</span>
-          {lab.glyph && <Glyph kind={lab.glyph} className="plate-glyph" />}
-          {step && <StepButtons step={step} />}
-        </div>
-      )}
-      {/* Keyed so the reveal replays and any loop state resets when the plate shows a different lab. */}
-      <PlateStage key={lab.id} lab={lab} number={number} compact={compact} />
-    </article>
-  )
-}
-
-// aria-disabled rather than disabled: reaching the first or last lab must not throw keyboard focus away.
-function StepButtons({ step }: { step: Step }) {
-  return (
-    <span className="plate-step" role="group" aria-label="Browse labs">
-      <button type="button" aria-label="Previous lab" aria-disabled={!step.prev} onClick={() => { if (step.prev) step.go(-1) }}><span aria-hidden="true">←</span></button>
-      <button type="button" aria-label="Next lab" aria-disabled={!step.next} onClick={() => { if (step.next) step.go(1) }}><span aria-hidden="true">→</span></button>
-    </span>
-  )
-}
-
-function PlateStage({ lab, number, compact }: { lab: Lab; number: number; compact: boolean }) {
+export function LabPlate({ lab, number, position, setSize }: Props) {
+  const card = useRef<HTMLElement>(null)
   const frame = useRef<HTMLDivElement>(null)
+  const seen = useSeen(card, 0.15)
   const sound = useSound()
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const { media } = lab
-  const hasLoop = Boolean(media.loop?.mp4 || media.loop?.webm)
-  const loop = useLoop(frame, hasLoop && !reducedMotion && !saveData())
+  const loop = useLoop(frame, Boolean(media.loop?.mp4 || media.loop?.webm) && !reducedMotion && !saveData())
   const live = lab.status === 'live'
   const lastSource = media.loop?.webm ? 'webm' : 'mp4'
 
-  // Only a live plate is a link, so only a live plate gets the pointer-following "Open lab" chip.
   function onPointerMove(event: PointerEvent) {
     if (!live || event.pointerType !== 'mouse' || !frame.current) return
     const rect = frame.current.getBoundingClientRect()
@@ -76,18 +37,29 @@ function PlateStage({ lab, number, compact }: { lab: Lab; number: number; compac
     const style = frame.current.style
     style.setProperty('--px', `${x.toFixed(1)}px`)
     style.setProperty('--py', `${y.toFixed(1)}px`)
-    style.setProperty('--chip-x', x > rect.width * 0.72 ? 'calc(-100% - 16px)' : '16px')
-    style.setProperty('--chip-y', y > rect.height * 0.7 ? 'calc(-100% - 16px)' : '16px')
+    style.setProperty('--chip-x', x > rect.width * 0.62 ? 'calc(-100% - 14px)' : '14px')
+    style.setProperty('--chip-y', y > rect.height * 0.7 ? 'calc(-100% - 14px)' : '14px')
   }
 
+  const classes = ['plate', live ? 'is-live' : 'is-soon', seen && 'is-seen', loop.playing && 'is-playing'].filter(Boolean).join(' ')
+
   return (
-    <div className={`plate-stage${loop.playing ? ' is-playing' : ''}`} onPointerMove={onPointerMove}>
+    // A live card's link is its tab stop; a soon card has no link, so the card itself takes focus.
+    <article ref={card} id={lab.id} className={classes} tabIndex={live ? -1 : 0}
+      aria-labelledby={`${lab.id}-title`} aria-describedby={`${lab.id}-hook`} aria-posinset={position} aria-setsize={setSize}
+      style={{ '--swatch': lab.swatch } as CSSProperties} onPointerMove={onPointerMove}>
+      <p className="plate-meta">
+        <span className="plate-no">Nº {pad(number)}</span>
+        <span className="plate-cat">{lab.category}</span>
+        {lab.glyph && <Glyph kind={lab.glyph} className="plate-glyph" />}
+      </p>
+
       <figure className="plate-figure">
         <div className="plate-frame" ref={frame}>
           <span className="plate-mount" aria-hidden="true" />
           <div className="plate-image">
             <img src={media.poster} alt={media.alt} width="1200" height="750" draggable={false}
-              loading={number === 1 ? 'eager' : 'lazy'} fetchPriority={number === 1 ? 'high' : 'auto'} decoding="async"
+              loading={number <= 2 ? 'eager' : 'lazy'} fetchPriority={number === 1 ? 'high' : 'auto'} decoding="async"
               onError={(event) => { event.currentTarget.style.visibility = 'hidden' }} />
             {loop.armed && (
               <video ref={loop.video} className="plate-video" muted loop playsInline autoPlay preload="auto" aria-hidden="true" tabIndex={-1}
@@ -103,30 +75,27 @@ function PlateStage({ lab, number, compact }: { lab: Lab; number: number; compac
           <span className="crop crop--bl" aria-hidden="true" />
           <span className="crop crop--br" aria-hidden="true" />
         </div>
-        <figcaption className="plate-caption">
-          <span className="plate-fig">Fig. {pad(number)}</span>
-          {loop.active ? 'Muted loop, captured from the lab.' : 'Still, captured from the lab.'}
-        </figcaption>
+        <figcaption className="plate-caption">{loop.active ? 'Muted loop, captured from the lab' : 'Still, captured from the lab'}</figcaption>
       </figure>
 
-      <div className="plate-body">
-        {!compact && <h2 className="plate-title" id={`${lab.id}-title`}>{lab.title}</h2>}
-        <dl className="plate-claim">
-          <div className="claim claim--assumed"><dt>You’d think</dt><dd><s>{lab.assumption}</s></dd></div>
-          <div className="claim claim--shown"><dt>The lab shows</dt><dd id={`${lab.id}-reveal`}>{lab.reveal}</dd></div>
-        </dl>
-        <div className="plate-foot">
-          <p className="plate-status"><i aria-hidden="true" />{live ? 'Live' : 'Coming soon'}</p>
-          {live ? (
-            <a className="plate-open" href={lab.href} aria-label={`Open lab: ${lab.title}`} aria-describedby={`${lab.id}-reveal`}
-              onClick={() => sound.play('click')}>
-              <span>Open lab</span><b aria-hidden="true">↗</b>
-            </a>
-          ) : (
-            <span className="plate-path"><code>{lab.href}</code> opens once it’s mounted</span>
-          )}
-        </div>
+      <h3 className="plate-title" id={`${lab.id}-title`}>{lab.title}</h3>
+      <p className="plate-hook" id={`${lab.id}-hook`}>
+        <span className="sr-only">You’d think: </span>
+        <s>{lab.assumption}</s>
+        <span className="sr-only"> The lab shows: </span>
+        <span className="plate-reveal">{lab.reveal}</span>
+      </p>
+
+      <div className="plate-foot">
+        <p className="plate-status"><i aria-hidden="true" />{live ? 'Live' : 'Coming soon'}</p>
+        {live ? (
+          <a className="plate-open" href={lab.href} aria-label={`Open lab: ${lab.title}`} onClick={() => sound.play('click')}>
+            <span>Open lab</span><b aria-hidden="true">↗</b>
+          </a>
+        ) : (
+          <span className="plate-path"><code>{lab.href}</code> not mounted yet</span>
+        )}
       </div>
-    </div>
+    </article>
   )
 }

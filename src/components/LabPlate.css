@@ -1,102 +1,82 @@
-/* --m is the mount offset, --b reserves room for the brackets, --c is where the brackets sit right now. */
-.plate { position: relative; --m: 12px; --b: 10px; --c: var(--b); }
-.plate--compact { --m: 9px; --b: 8px; }
+.plate { position: relative; display: flex; flex-direction: column; min-width: 0; --mount: 10px; --room: 8px; --bracket: var(--room); }
+.plate:focus { outline: none; }
+.plate:focus-visible .plate-image, .plate:has(.plate-open:focus-visible) .plate-image { outline: 2px solid var(--signal); outline-offset: 3px; }
+.plate:focus-visible .plate-no, .plate:has(.plate-open:focus-visible) .plate-no { color: var(--signal); }
 
-/* ── Meta strip ── */
-.plate-meta { display: flex; align-items: center; gap: 16px; min-height: 38px; padding-bottom: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--ink); font: .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.plate-no { flex: none; color: var(--ink); }
-.plate-of { color: var(--muted); }
+.plate-meta { display: flex; align-items: center; gap: 12px; min-height: 28px; margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--ink); font: .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.plate-no { flex: none; color: var(--ink); transition: color .25s; }
 .plate-cat { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.plate-glyph { flex: none; width: 64px; height: 20px; color: var(--ink-soft); }
-.plate-step { position: relative; z-index: 4; display: inline-flex; flex: none; gap: 4px; }
-.plate-step button { display: grid; place-items: center; width: 34px; height: 28px; padding: 0; border: 1px solid var(--rule); border-radius: 999px; background: transparent; cursor: pointer; font: 500 .875rem/1 var(--mono); color: var(--ink); transition: border-color .2s, background .2s; }
-.plate-step button:not([aria-disabled="true"]):hover { border-color: var(--ink); background: var(--paper-lift); }
-.plate-step button[aria-disabled="true"] { border-style: dashed; color: var(--rule); cursor: default; }
+.plate-glyph { flex: none; width: 52px; height: 18px; color: var(--ink-soft); }
 
-/* ── Figure: mount, print, viewfinder brackets ── */
 .plate-figure { margin: 0; }
-.plate-frame { position: relative; margin: 0 calc(var(--m) + var(--b)) 0 0; }
-.plate-mount { position: absolute; inset: 0; background: var(--swatch); transform: translate(var(--m), var(--m)); transition: transform .7s var(--ease-out); }
+.plate-frame { position: relative; margin: 0 calc(var(--mount) + var(--room)) 0 0; }
+.plate-mount { position: absolute; inset: 0; background: var(--swatch); transform: translate(var(--mount), var(--mount)); transition: transform .7s var(--ease-out); }
 .plate-image { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #0e1011; transition: transform .7s var(--ease-out); }
 .plate-image img, .plate-video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
 .plate-image img { transition: transform 1.6s var(--ease-out); }
 .plate-video { opacity: 0; transition: opacity .4s linear; }
 .is-playing .plate-video { opacity: 1; }
 
-.crop { position: absolute; width: 16px; height: 16px; border: 0 solid var(--ink); pointer-events: none; transition: top .5s var(--ease-out), right .5s var(--ease-out), bottom .5s var(--ease-out), left .5s var(--ease-out), border-color .3s; }
-.crop--tl { top: calc(-1 * var(--c)); left: calc(-1 * var(--c)); border-top-width: 1px; border-left-width: 1px; }
-.crop--tr { top: calc(-1 * var(--c)); right: calc(-1 * (var(--c) + var(--m))); border-top-width: 1px; border-right-width: 1px; }
-.crop--bl { bottom: calc(-1 * (var(--c) + var(--m))); left: calc(-1 * var(--c)); border-bottom-width: 1px; border-left-width: 1px; }
-.crop--br { bottom: calc(-1 * (var(--c) + var(--m))); right: calc(-1 * (var(--c) + var(--m))); border-bottom-width: 1px; border-right-width: 1px; }
+.crop { position: absolute; width: 14px; height: 14px; border: 0 solid var(--ink); pointer-events: none; transition: top .5s var(--ease-out), right .5s var(--ease-out), bottom .5s var(--ease-out), left .5s var(--ease-out), border-color .3s; }
+.crop--tl { top: calc(-1 * var(--bracket)); left: calc(-1 * var(--bracket)); border-top-width: 1px; border-left-width: 1px; }
+.crop--tr { top: calc(-1 * var(--bracket)); right: calc(-1 * (var(--bracket) + var(--mount))); border-top-width: 1px; border-right-width: 1px; }
+.crop--bl { bottom: calc(-1 * (var(--bracket) + var(--mount))); left: calc(-1 * var(--bracket)); border-bottom-width: 1px; border-left-width: 1px; }
+.crop--br { bottom: calc(-1 * (var(--bracket) + var(--mount))); right: calc(-1 * (var(--bracket) + var(--mount))); border-bottom-width: 1px; border-right-width: 1px; }
 
-/* Live: the whole plate is one link, so it lifts like a print picked up off the table. */
 .is-live .plate-frame { cursor: pointer; }
-.is-live:hover .plate-frame { --c: 5px; }
+.is-live:hover .plate-frame { --bracket: 4px; }
 .is-live:hover .crop { border-color: var(--signal); }
 .is-live:hover .plate-image { transform: translate(-3px, -3px); }
-.is-live:hover .plate-mount { transform: translate(calc(var(--m) * 1.35), calc(var(--m) * 1.35)); }
+.is-live:hover .plate-mount { transform: translate(calc(var(--mount) * 1.4), calc(var(--mount) * 1.4)); }
 .is-live:hover .plate-image img { transform: scale(1.02); }
-
-/* Coming soon: nothing to open, so hovering only brings the print into focus. */
-.is-soon .plate-frame:hover { --c: 6px; }
-.is-soon .plate-frame:hover .plate-image img { transform: scale(1.012); }
+.is-soon:hover .plate-frame, .is-soon:focus-visible .plate-frame { --bracket: 5px; }
+.is-soon:hover .plate-image img { transform: scale(1.012); }
 
 .plate-chip {
   position: absolute; top: 0; left: 0;
-  padding: 8px 11px 7px;
+  padding: 7px 10px 6px;
   background: var(--signal); color: var(--on-signal);
   font: 600 .75rem/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;
-  transform: translate(var(--px, 0), var(--py, 0)) translate(var(--chip-x, 16px), var(--chip-y, 16px));
+  transform: translate(var(--px, 0), var(--py, 0)) translate(var(--chip-x, 14px), var(--chip-y, 14px));
   opacity: 0; transition: opacity .18s;
   pointer-events: none;
 }
 .plate-chip b { margin-left: 6px; font-weight: 400; }
 @media (hover: hover) { .is-live:hover .plate-chip { opacity: 1; } }
 
-.plate-caption { display: flex; gap: 12px; margin: calc(var(--m) + 10px) 0 0; font: .75rem/1.4 var(--mono); color: var(--muted); }
-.plate-fig { flex: none; color: var(--ink); }
+.plate-caption { margin: calc(var(--mount) + 9px) 0 0; font: .75rem/1.4 var(--mono); color: var(--muted); }
 
-/* ── Caption block ── */
-.plate-body { margin-top: 18px; }
-.plate-title { margin: 0 0 18px; font: 650 clamp(2.4rem, 3.9vw, 4.2rem)/.9 var(--display); letter-spacing: -.055em; text-wrap: balance; }
-.plate-claim { margin: 0; }
-.claim { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 20px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--rule); }
-.claim dt { font: .75rem/1.5 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.claim dd { margin: 0; font: 400 clamp(1.1rem, 1.4vw, 1.3rem)/1.35 var(--serif); text-wrap: pretty; }
-.claim--assumed dd { color: var(--muted); }
-.claim--shown dd { color: var(--ink); }
-/* Blue pencil: the assumption is struck through. */
-.claim--assumed s { text-decoration: none; background: linear-gradient(var(--signal), var(--signal)) no-repeat 0 58% / 100% 2px; }
+.plate-title { margin: 14px 0 0; font: 650 clamp(1.55rem, 2.1vw, 2.05rem)/1.02 var(--display); letter-spacing: -.04em; text-wrap: balance; }
+.plate-hook { margin: 12px 0 20px; font: 400 1.06rem/1.4 var(--serif); text-wrap: pretty; }
+.plate-hook s { color: var(--muted); text-decoration: none; background: linear-gradient(var(--signal), var(--signal)) no-repeat 0 58% / 100% 1.5px; }
+.plate-reveal { display: block; margin-top: 4px; color: var(--ink); }
 
-.plate-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; padding-top: 10px; border-top: 1px solid var(--ink); }
-.plate-status { display: inline-flex; align-items: center; gap: 10px; margin: 0; font: .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.plate-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 50px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--rule); }
+.plate-status { display: inline-flex; flex: none; align-items: center; gap: 9px; margin: 0; font: .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .plate-status i { width: 8px; height: 8px; border: 1.5px solid currentColor; border-radius: 50%; }
 .is-live .plate-status { color: var(--ink); }
 .is-live .plate-status i { border-color: var(--signal); background: var(--signal); }
-.plate-path { font: .75rem/1.4 var(--mono); color: var(--muted); text-align: right; }
+.plate-path { min-width: 0; font: .75rem/1.4 var(--mono); color: var(--muted); text-align: right; }
 .plate-path code { font: inherit; color: var(--ink-soft); }
 
-.plate-open { display: inline-flex; align-items: center; gap: 22px; min-height: 48px; padding: 0 18px 0 22px; background: var(--signal); color: var(--on-signal); font: 600 1rem/1 var(--display); letter-spacing: -.01em; transition: background .25s; }
-.plate-open b { font-size: 1.15em; font-weight: 400; transition: transform .45s var(--ease-out); }
-/* One link, stretched over the whole plate: one click anywhere opens a live lab. */
+.plate-open { display: inline-flex; align-items: center; gap: 18px; min-height: 40px; padding: 0 14px 0 16px; background: var(--signal); color: var(--on-signal); font: 600 .9375rem/1 var(--display); letter-spacing: -.01em; transition: background .25s; }
+.plate-open b { font-weight: 400; transition: transform .45s var(--ease-out); }
 .plate-open::after { content: ''; position: absolute; inset: 0; z-index: 3; }
+.plate-open:focus-visible { outline-offset: 3px; }
 .plate:hover .plate-open { background: var(--ink); }
 .plate:hover .plate-open b { transform: translate(3px, -3px); }
-.plate:has(.plate-open:focus-visible) .plate-image { outline: 2px solid var(--signal); outline-offset: 3px; }
 
-/* ── Reveal: when the plate is first seen, and again each time it shows a different lab ── */
-.plate-stage .plate-image { animation: wipe .85s var(--ease-out) both; }
-.plate-stage .plate-mount { animation: mount-in 1.3s var(--ease-out) backwards; }
-.plate-stage .crop { animation: appear .5s ease .35s backwards; }
-.plate-stage .claim--assumed s { animation: strike .7s var(--ease-in-out) .45s backwards; }
-.plate-stage .claim--shown { animation: settle .7s var(--ease-out) .9s backwards; }
-.plate:not(.is-seen) .plate-stage * { animation-play-state: paused; }
+.plate-image { animation: wipe .85s var(--ease-out) both; }
+.plate-mount { animation: mount-in 1.3s var(--ease-out) backwards; }
+.crop { animation: appear .5s ease .35s backwards; }
+.plate-hook s { animation: strike .7s var(--ease-in-out) .45s backwards; }
+.plate-reveal { animation: settle .7s var(--ease-out) .9s backwards; }
+.plate:not(.is-seen) * { animation-play-state: paused; }
 @keyframes wipe { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
 @keyframes mount-in { from { clip-path: inset(100% 0 0 0); transform: translate(0, 0); } 55% { clip-path: inset(0); transform: translate(0, 0); } }
 @keyframes appear { from { opacity: 0; } }
-@keyframes strike { from { background-size: 0% 2px; } }
+@keyframes strike { from { background-size: 0% 1.5px; } }
 
-/* ── Glyphs ── */
 .glyph { overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .glyph-envelope { stroke-width: 1; stroke-dasharray: 1.5 2.5; opacity: .4; }
 .glyph-axis { stroke-width: .8; opacity: .3; }
@@ -104,22 +84,18 @@
 .glyph-wave { transform-box: view-box; transform-origin: 36px 12px; }
 .glyph-coin { stroke-width: 1.2; fill: transparent; }
 .glyph-coin:nth-child(1), .glyph-coin:nth-child(4) { fill: currentColor; }
-.plate:hover .glyph-wave { animation: standing 1.05s var(--ease-in-out) infinite alternate; }
-.plate:hover .glyph-coin { animation: select 2.4s steps(1, end) calc(var(--i) * .16s) infinite; }
+.plate:hover .glyph-wave, .plate:focus-visible .glyph-wave { animation: standing 1.05s var(--ease-in-out) infinite alternate; }
+.plate:hover .glyph-coin, .plate:focus-visible .glyph-coin { animation: select 2.4s steps(1, end) calc(var(--i) * .16s) infinite; }
 @keyframes standing { from { transform: scaleY(1); } to { transform: scaleY(-1); } }
 @keyframes select { 0% { fill: transparent; } 25% { fill: currentColor; } 70% { fill: transparent; } }
 
-/* ── Compact plates live inside the mobile index ── */
-.plate--compact .plate-body { margin-top: 20px; }
-
 @media (max-width: 599px) {
-  .plate-glyph { display: none; }
-  .claim { grid-template-columns: minmax(0, 1fr); gap: 6px; }
-  .plate-foot { flex-wrap: wrap; padding-bottom: 4px; }
-  .plate-open { flex: 1 1 100%; justify-content: space-between; min-height: 52px; }
+  .plate { --mount: 8px; --room: 7px; }
+  .plate-foot { flex-wrap: wrap; }
+  .plate-open { flex: 1 1 100%; justify-content: space-between; min-height: 48px; }
   .plate-path { text-align: left; }
 }
 
 @media (pointer: coarse) {
-  .plate-step button { width: 44px; height: 40px; }
+  .plate-open { min-height: 48px; }
 }
