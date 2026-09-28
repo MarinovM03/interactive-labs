@@ -59,16 +59,18 @@ export function LabIndex({ labs, filter, onFilter, onStep }: Props) {
         <h2 className="index-label" id="index-label">
           Index<span>{pad(labs.length)} {labs.length === 1 ? 'lab' : 'labs'}</span>
         </h2>
-        <div className="index-filters" role="group" aria-label="Show labs by status">
+        <fieldset className="index-filters">
+          <legend className="sr-only">Show labs by status</legend>
           {filters.map(({ id, label }) => (
             <button key={id} type="button" className="chip" aria-pressed={filter === id}
               disabled={counts[id] === 0 && filter !== id} onClick={() => onFilter(id)}>
               {label}<span className="chip-count">{pad(counts[id])}</span>
             </button>
           ))}
-        </div>
+        </fieldset>
       </div>
 
+      {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- the feed pattern handles its keys on the container */}
       <div className="index-grid" role="feed" aria-busy="false" aria-labelledby="index-label" onKeyDown={onKeyDown}>
         {visible.map((lab, index) => (
           <LabPlate key={lab.id} lab={lab} number={labs.indexOf(lab) + 1} position={index + 1} setSize={visible.length} />

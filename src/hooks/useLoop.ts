@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import type { RefObject } from 'react'
+import { useEffect, useState } from 'react'
 
-export function useLoop(target: RefObject<Element | null>, enabled: boolean) {
-  const video = useRef<HTMLVideoElement>(null)
+export function useLoop(target: Element | null, enabled: boolean) {
+  const [video, setVideo] = useState<HTMLVideoElement | null>(null)
   const [failed, setFailed] = useState(false)
   const [onScreen, setOnScreen] = useState(false)
   const [pageVisible, setPageVisible] = useState(() => !document.hidden)
@@ -10,12 +9,12 @@ export function useLoop(target: RefObject<Element | null>, enabled: boolean) {
   const [playing, setPlaying] = useState(false)
   const active = enabled && !failed
   const shouldPlay = active && onScreen && pageVisible
+  if (shouldPlay && !armed) setArmed(true)
 
   useEffect(() => {
-    const element = target.current
-    if (!active || !element || !('IntersectionObserver' in window)) return
+    if (!active || !target || !('IntersectionObserver' in window)) return
     const observer = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { threshold: 0.3 })
-    observer.observe(element)
+    observer.observe(target)
     const onVisibility = () => setPageVisible(!document.hidden)
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
@@ -24,21 +23,17 @@ export function useLoop(target: RefObject<Element | null>, enabled: boolean) {
     }
   }, [active, target])
 
-  useEffect(() => { if (shouldPlay) setArmed(true) }, [shouldPlay])
-
   useEffect(() => {
-    const element = video.current
-    if (!element) return
+    if (!video) return
     if (shouldPlay) {
-      element.muted = true
-      void element.play().catch(() => setPlaying(false))
+      void video.play().catch(() => setPlaying(false))
     } else {
-      element.pause()
+      video.pause()
     }
-  }, [shouldPlay, armed])
+  }, [shouldPlay, video])
 
   return {
-    video,
+    setVideo,
     active,
     armed: armed && active,
     playing: playing && active,

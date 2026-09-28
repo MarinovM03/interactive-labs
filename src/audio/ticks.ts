@@ -37,7 +37,7 @@ export function tick(kind: Tick) {
     envelope.gain.exponentialRampToValueAtTime(0.0001, now + voice.duration)
     oscillator.connect(envelope)
     envelope.connect(context.destination)
-    oscillator.onended = () => { oscillator.disconnect(); envelope.disconnect() }
+    oscillator.addEventListener('ended', () => { oscillator.disconnect(); envelope.disconnect() }, { once: true })
     oscillator.start(now)
     oscillator.stop(now + voice.duration + 0.01)
   } catch {

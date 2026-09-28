@@ -8,6 +8,8 @@ import { Stats } from './components/Stats'
 import { XLink } from './components/XLink'
 import { SoundProvider, useSound } from './audio/Sound'
 
+const year = new Date().getFullYear()
+
 export function App() {
   return <SoundProvider><Hub /></SoundProvider>
 }
@@ -46,7 +48,7 @@ function Hub() {
             {' '}{liveCount ? `${liveCount} of ${labs.length} open now.` : 'None are open yet; each opens once its path is mounted.'}
           </p>
           <p className="colophon-year">
-            <span>© {new Date().getFullYear()} Marinov</span>
+            <span>© {year} Marinov</span>
             <XLink className="x-link--night" />
           </p>
         </div>
