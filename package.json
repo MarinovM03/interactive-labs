@@ -8,19 +8,24 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "lint": "oxlint",
     "typecheck": "tsc -b",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "playwright test"
   },
   "dependencies": {
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@types/node": "^26.6.3",
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.86.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.1"
   }

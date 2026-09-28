@@ -144,3 +144,7 @@ vite.config.ts.timestamp-*
 
 # Local verification artifacts
 .qa/
+
+# Test output
+test-results/
+playwright-report/
