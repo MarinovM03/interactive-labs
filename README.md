@@ -9,14 +9,20 @@ Requires Node **22.12.0 or newer** (the floor in `package.json` `engines`; `.nvm
 ```sh
 npm install
 npm run dev
+npm run lint
 npm run typecheck
 npm run build
 npm run preview
+npm test
 ```
 
 The build writes static files to `dist/`. No account, API key, database, remote font, or runtime service is required.
 
-GitHub Actions (`.github/workflows/ci.yml`) runs `npm ci`, `npm run typecheck`, and `npm run build` on every push to `main` and on every pull request, using the Node version in `.nvmrc`. A type or build error fails the job.
+`npm test` builds the site, serves it with `npm run preview`, and runs the Playwright suite in `tests/` against the installed Google Chrome. The page tests cover desktop and phone: every lab is a visible card, stats, filters, keyboard movement, root-only 404s with their headers, automatic accessibility checks, reduced motion, High Contrast and print. The build tests check the `SITE_URL` rules. Every page test also fails on any Content-Security-Policy violation.
+
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, typecheck, build and the tests on every push to `main` and every pull request, using the Node version in `.nvmrc`. The actions are pinned to commit SHAs, the checkout token is not kept on disk, and dependencies install with `--ignore-scripts`. Dependabot (`.github/dependabot.yml`) proposes npm and action updates weekly.
+
+Linting uses oxlint (`.oxlintrc.json`), including the React hooks and JSX accessibility rules. ESLint's TypeScript parser does not support TypeScript 7, which this project uses.
 
 ## How the page is built
 
@@ -42,10 +48,9 @@ Every lab is always on screen as a card. Nothing is hidden behind a selection, s
 
 ### Mark
 
-The Marinov mark is a white **M** on a blue square. `public/favicon.svg` is the source, and the header and footer render that same file.
+The Marinov mark is a white **M** on a blue square. `src/assets/mark.svg` is the only source. The favicon link, the header and footer marks, and the 404 page all reference it, and the build emits it once with a content hash in its name, so a changed mark reaches every browser without any manual cache-busting.
 
-- `public/favicon.ico` is the same artwork rasterized at 16, 32 and 48 px, for browsers that do not use SVG icons. Regenerate it whenever the SVG changes.
-- The icon links and the marks use `?v=2`. Bump it when the mark changes, so browsers holding an old cached icon fetch the new one.
+`public/favicon.ico` is the same artwork rasterized at 16, 32 and 48 px for browsers that do not use SVG icons. It keeps a fixed name because browsers request `/favicon.ico` directly. Regenerate it whenever the mark changes.
 
 ### Palette and type
 
@@ -62,6 +67,13 @@ Type uses system fonts only: Segoe UI Variable (Display and Text) or the platfor
 ## Lab data and status
 
 Labs are listed in `src/data/labs.ts`, in index order. Each entry holds the title, field, tagline, the `assumption` / `reveal` pair, path, status, media, swatch, and an optional glyph for the card header. Adding a lab is adding an entry and its media folder.
+
+The dev server and the build both check the list first and refuse to start, with a clear list of problems, if any entry is wrong:
+- ids are lowercase-with-dashes, unique, and not `index` or `index-label` (the page's own ids);
+- paths look like `/lab-name/` and are unique, so the no-JS page can never carry a `javascript:` or off-site link;
+- title, tagline, assumption, reveal, category and alt text are not empty;
+- the swatch is a `#rrggbb` colour;
+- every poster and loop file exists under `public/media/labs/<id>/`.
 
 Both labs are `soon`. They stay `soon` until `/standing-wave/` and `/coin-table/` are actually mounted and tested on the shared domain. Changing a lab to `live` updates every surface at once:
 
@@ -85,12 +97,14 @@ public/media/labs/<lab-id>/
 ```
 
 - **Posters are the honest default.** Every card shows its poster, with alt text describing the scene and a caption that says what it is: “Still, captured from the lab.” Reduced-motion and data-saver visitors only ever get stills.
-- The first two posters load eagerly; the rest load as they approach the screen, so a long index stays light.
+- The first poster loads eagerly with high priority; the rest load as they approach the screen, so a long index stays light.
 - **Loops are opt-in and must be real.** Add `media.loop` only for a capture that loops without a visible seam. It then autoplays muted while the card is on screen, pauses when off screen or when the tab is hidden, and the caption changes to “Muted loop, captured from the lab.” It is only downloaded when it is about to play, and any failure leaves the poster in place.
 - **There are no loops yet.** The earlier four-second camera clips drifted and jumped back at the loop point, so they were removed rather than shown. They remain in history at commit `70f7b37` if they are useful as reference for new captures.
 - **Motion without video** is limited to CSS on the real still: the print wipes up out of its mount when a card first comes into view, a live card lifts on hover, and the image eases by a percent or two.
 
-Keep posters at 16:10. To replace media without code changes, overwrite the same filenames.
+Keep posters at 16:10 and export them from the original render, aiming for about 80 KB. Re-compressing an existing WebP stacks artifacts, so re-export instead. To replace media without code changes, overwrite the same filenames.
+
+`public/media/share.jpg` is the 1200 × 630 sharing image. It is composed from the two posters in the site's own type and colours; rebuild it when the lab line-up changes.
 
 ## Motion, sound, and access
 
@@ -98,6 +112,8 @@ Keep posters at 16:10. To replace media without code changes, overwrite the same
 - **Sound** is off by default. The header control enables quiet synthesized ticks: a detent tick for each keyboard step between cards, a click for choices, and a soft landing when sound is switched on. The preference is stored locally, and even a remembered “on” waits for a user gesture. There are no sound files, and audio failures never block navigation.
 - **Keyboard:** skip link → lockup → X → sound → status chips → each card in order → footer. Tab visits every card. Inside the grid, the arrow keys move by column and row, Page Up / Page Down step one card, and Home / End jump to the ends. A coming-soon card takes focus itself; a live card's focus lands on its Open lab link, so Enter opens it. Focus rings are signal blue and always land below the sticky header.
 - **Screen readers:** the grid is a feed of articles. Each card is named by its title and described by its hook (“You'd think: … The lab shows: …”), with its position in the set. The struck assumption is a real `<s>` element. Stats read as “Paths live: 0 of 2.”
+- **High Contrast:** in Windows forced-colours mode the assumption keeps a real line-through, and the selected filter uses the system highlight.
+- **Print:** every card prints in its final state, even ones never scrolled into view. Screen-only controls are hidden and the footer prints in ink.
 - **No-JS:** the HTML includes a crawlable index generated from `labs.ts` at build time.
 
 ## Sharing and SITE_URL
@@ -110,14 +126,32 @@ Keep posters at 16:10. To replace media without code changes, overwrite the same
 - `og:image` with its size and alt text;
 - `twitter:image`, with `twitter:card` set to `summary_large_image`.
 
-The Standing Wave poster is the sharing image until a dedicated one exists.
+The sharing image is `public/media/share.jpg` (1200 × 630 JPEG). The build also writes `sitemap.xml`, listing `/` plus any lab that is `live`, and points `robots.txt` at it.
 
-**Without `SITE_URL`**, no absolute URL is emitted at all, `twitter:card` is a plain `summary`, and nothing claims a domain. Title, description, theme colour, robots, and CollectionPage structured data are always included. CI builds without it on purpose.
+**Without `SITE_URL`**, no absolute URL is emitted at all, `twitter:card` is a plain `summary`, there is no sitemap, and nothing claims a domain. Title, description, theme colour, `robots.txt`, and CollectionPage structured data are always included. CI builds without it on purpose. A Cloudflare Pages build of `main` without `SITE_URL` prints a warning in the build log.
 
 Set it where the production build runs:
 
 - **Cloudflare Pages:** Project → Settings → Variables and Secrets → add `SITE_URL` = `https://your-domain.com/` for the **Production** environment, then redeploy. Leaving it unset for Preview deployments keeps preview builds from claiming the production canonical.
 - **Local production build:** put `SITE_URL=https://your-domain.com/` in an untracked `.env.local` (see `.env.example`).
+
+With a custom domain, the project's `*.pages.dev` address serves the same site. The canonical tag points search engines at the custom domain; a Bulk Redirect from `*.pages.dev` to the domain removes the duplicate entirely. Cloudflare marks preview deployments `noindex`; check the response headers on a preview URL to confirm.
+
+## Security
+
+`public/_headers` sets these on every response the hub serves, including its 404s:
+
+| Header | Why |
+| --- | --- |
+| `Content-Security-Policy` | Only same-origin scripts, images, media and fonts; no plugins, no framing, no form posts; Trusted Types enforced so no code can write HTML strings into the page. Inline styles are allowed for the small `<style>` blocks and the no-JS fallback. |
+| `Strict-Transport-Security` | Browsers stay on HTTPS for a year. `includeSubDomains` is left off because it is a decision for the whole domain. |
+| `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` | No MIME sniffing, no framing in older browsers, no full URLs leaked to other sites, no camera or location access, and no cross-window handles. |
+
+`npm run preview` sends the same headers, and the tests fail on any policy violation, so a change that breaks the policy shows up before it ships. Asset inlining is turned off because inlined `data:` URLs would break the policy.
+
+The dev server only listens on `127.0.0.1`, rejects foreign `Host` headers, and refuses dotfiles.
+
+**When labs share the domain:** the hub's headers only cover the hub. The routing layer should send equivalent headers for each lab path. Never let a lab register a service worker with scope `/` (do not send `Service-Worker-Allowed: /`), because it could then control the hub. The router should normalise paths (missing trailing slash, letter case, `//`, `%2F`), redirect only to same-site paths, and keep unknown paths 404.
 
 ## Deploy and the path contract
 
@@ -138,7 +172,7 @@ The intended final URLs are:
 
 **The hub is root-only.**
 - It serves one page, `/`, and makes no claim to any other path.
-- There is no SPA catch-all and no `_redirects` rewrite. `dist/404.html` makes Pages answer every unknown path, including the lab paths, with a real 404 until those apps are mounted.
+- There is no SPA catch-all and no `_redirects` rewrite. `404.html` is built into `dist/404.html`, which makes Pages answer every unknown path, including the lab paths, with a real 404 until those apps are mounted.
 - The dev and preview servers do the same (`appType: 'mpa'` plus a small 404 middleware), so local checks match production.
 - See [Cloudflare's static serving behavior](https://developers.cloudflare.com/pages/configuration/serving-pages/).
 
@@ -146,13 +180,15 @@ Separate Pages projects do not automatically become paths on one domain. Mountin
 
 ## Checking a change
 
-CI covers typecheck and build. Also check:
+`npm run lint`, `npm run typecheck` and `npm test` cover most of it, and CI runs all three. By eye, also check:
 
 - the home at desktop, short-laptop (1280 × 720), tablet, and phone widths, with no horizontal scroll down to 320px;
-- the grid with Tab and arrow keys, the chips, and a deep link such as `/#coin-table`;
 - a long index: temporarily add mock entries and confirm every card stays visible, the header stays pinned, and long titles wrap cleanly;
-- reduced motion (stills only, no video requests) and sound on/off;
-- that `/standing-wave/`, `/coin-table/`, and any unknown path return the 404 page from `npm run preview`;
-- after deployment, both real lab URLs.
+- sound on/off;
+- after deployment: both real lab URLs, and the response headers on `/` and on an unknown path.
+
+## License
+
+All rights reserved; see `LICENSE`. The code, the mark and the lab media are not licensed for reuse.
 
 Commits and pushes are applied by Marinov through GitHub Desktop.
