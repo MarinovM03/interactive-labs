@@ -109,7 +109,7 @@ Keep posters at 16:10 and export them from the original render, aiming for about
 ## Motion, sound, and access
 
 - **Reduced motion** turns every animation and transition off and shows the final state (struck assumption, visible correction). No video element is created.
-- **Sound** is off by default. The header control enables quiet synthesized ticks: a detent tick for each keyboard step between cards, a click for choices, and a soft landing when sound is switched on. The preference is stored locally, and even a remembered “on” waits for a user gesture. There are no sound files, and audio failures never block navigation.
+- **Sound** is on by default: quiet synthesized ticks, a detent tick for each keyboard step between cards, a click for choices, and a soft landing when sound is switched back on. Browsers only allow audio after the visitor interacts, so nothing plays on load; the first click or key press unlocks audio and makes its own tick. Switching sound off in the header is remembered on this device. Ticks only ever answer the visitor's own actions. There are no sound files, and audio failures never block navigation.
 - **Keyboard:** skip link → lockup → X → sound → status chips → each card in order → footer. Tab visits every card. Inside the grid, the arrow keys move by column and row, Page Up / Page Down step one card, and Home / End jump to the ends. A coming-soon card takes focus itself; a live card's focus lands on its Open lab link, so Enter opens it. Focus rings are signal blue and always land below the sticky header.
 - **Screen readers:** the grid is a feed of articles. Each card is named by its title and described by its hook (“You'd think: … The lab shows: …”), with its position in the set. The struck assumption is a real `<s>` element. Stats read as “Paths live: 0 of 2.”
 - **High Contrast:** in Windows forced-colours mode the assumption keeps a real line-through, and the selected filter uses the system highlight.
@@ -184,7 +184,7 @@ Separate Pages projects do not automatically become paths on one domain. Mountin
 
 - the home at desktop, short-laptop (1280 × 720), tablet, and phone widths, with no horizontal scroll down to 320px;
 - a long index: temporarily add mock entries and confirm every card stays visible, the header stays pinned, and long titles wrap cleanly;
-- sound on/off;
+- sound on a real device, including its volume against other tabs;
 - after deployment: both real lab URLs, and the response headers on `/` and on an unknown path.
 
 ## License
