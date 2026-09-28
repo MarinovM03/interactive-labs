@@ -7,7 +7,7 @@ const preferenceKey = 'interactive-labs:sound'
 const SoundContext = createContext({ enabled: false, toggle: () => {}, play: (_kind: Tick) => {} })
 
 function readPreference() {
-  try { return localStorage.getItem(preferenceKey) === 'on' } catch { return false }
+  try { return localStorage.getItem(preferenceKey) !== 'off' } catch { return true }
 }
 
 export function SoundProvider({ children }: { children: ReactNode }) {
@@ -31,7 +31,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       try { localStorage.setItem(preferenceKey, next ? 'on' : 'off') } catch { /* Preference is optional. */ }
       if (next) void unlockAudio().then(() => tick('land'))
     },
-    play: (kind: Tick) => { if (enabled) tick(kind) },
+    play: (kind: Tick) => { if (enabled) void unlockAudio().then(() => tick(kind)) },
   }), [enabled])
   return <SoundContext.Provider value={value}>{children}</SoundContext.Provider>
 }

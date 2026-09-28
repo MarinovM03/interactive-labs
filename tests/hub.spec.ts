@@ -22,6 +22,40 @@ async function settled(page: Page) {
   await page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== 'running' || animation.effect?.getTiming().iterations === Infinity))
 }
 
+test('sound is on by default, the first action ticks, and off is remembered', async ({ page }) => {
+  await page.addInitScript(() => {
+    const created: number[] = []
+    Object.assign(window, { oscillators: created })
+    const original = AudioContext.prototype.createOscillator
+    AudioContext.prototype.createOscillator = function (this: AudioContext) {
+      created.push(this.currentTime)
+      return original.call(this)
+    }
+  })
+  const oscillators = () => page.evaluate(() => (window as unknown as { oscillators: number[] }).oscillators.length)
+  const toggle = page.getByRole('button', { name: 'Sound', exact: true })
+  const allChip = page.getByRole('button', { name: /^All/ })
+
+  await page.goto('/')
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+  if (labs.length > 1) {
+    const first = page.locator(`article#${labs[0].id}`)
+    await (labs[0].status === 'live' ? first.getByRole('link') : first).focus()
+    await page.keyboard.press('ArrowRight')
+  } else {
+    await allChip.click()
+  }
+  await expect.poll(oscillators).toBeGreaterThan(0)
+
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  await page.reload()
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+  await allChip.click()
+  await page.waitForTimeout(300)
+  expect(await oscillators()).toBe(0)
+})
+
 test('every lab is a visible card with its still, title and hook', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('feed').getByRole('article')).toHaveCount(labs.length)
