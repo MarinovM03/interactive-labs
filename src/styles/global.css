@@ -163,3 +163,15 @@ img { max-width: 100%; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+@media print {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .rail { position: static; height: auto; padding-top: 0; border: 0; }
+  .rail-actions, .rail-legend, .skip-link { display: none; }
+  .colophon { background: none; color: var(--ink); }
+  .colophon-inner { display: block; padding-top: 32px; padding-bottom: 0; border-top: 1px solid var(--ink); }
+  .colophon-mark p, .colophon-note, .colophon-year { padding-left: 0; color: var(--muted); }
+  .colophon-mark strong { color: var(--ink); }
+  .colophon-year { border-top-color: var(--rule); }
+  .x-link--night { border-color: var(--rule); color: var(--ink); }
+}

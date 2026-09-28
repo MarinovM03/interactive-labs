@@ -16,7 +16,7 @@
 }
 .index-label { display: flex; align-items: baseline; gap: 12px; margin: 0; font: 600 .75rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink); }
 .index-label span { font-weight: 400; color: var(--muted); }
-.index-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.index-filters { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; margin: 0; padding: 0; border: 0; }
 
 .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 999px; background: transparent; cursor: pointer; font: .75rem/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); transition: border-color .2s, background .2s, color .2s; }
 .chip-count { color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -37,4 +37,14 @@
 
 @media (pointer: coarse) {
   .chip { min-height: 40px; padding: 0 14px; }
+}
+
+@media print {
+  .index-head { position: static; }
+  .index-filters { display: none; }
+}
+
+@media (forced-colors: active) {
+  .chip[aria-pressed="true"] { forced-color-adjust: none; border-color: Highlight; background: Highlight; color: HighlightText; }
+  .chip[aria-pressed="true"] .chip-count { color: HighlightText; }
 }

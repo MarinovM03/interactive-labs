@@ -99,3 +99,11 @@
 @media (pointer: coarse) {
   .plate-open { min-height: 48px; }
 }
+
+@media print {
+  .plate { break-inside: avoid; }
+}
+
+@media (forced-colors: active), print {
+  .plate-hook s { background: none; text-decoration: line-through 2px; }
+}

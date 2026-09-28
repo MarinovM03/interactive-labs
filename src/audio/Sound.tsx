@@ -41,7 +41,7 @@ export function useSound() { return useContext(SoundContext) }
 export function SoundToggle() {
   const { enabled, toggle } = useSound()
   return (
-    <button className="sound-toggle" type="button" aria-label="Interface sounds" aria-pressed={enabled} onClick={toggle}>
+    <button className="sound-toggle" type="button" aria-label="Sound" aria-pressed={enabled} onClick={toggle}>
       <span className="sound-bars" aria-hidden="true"><i /><i /><i /><i /></span>
       <span className="sound-label">Sound <b>{enabled ? 'on' : 'off'}</b></span>
     </button>
